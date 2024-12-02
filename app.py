@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 @app.route('/')
 def hello_world():
-    # HTML with inline CSS for styling
+    # HTML with inline CSS for 3D text styling
     html_content = '''
     <!DOCTYPE html>
     <html>
@@ -21,10 +21,17 @@ def hello_world():
                 font-family: "Lucida Handwriting", cursive;
                 font-size: 2em;
             }
+            span {
+                color: white;
+                text-shadow: 
+                    1px 1px 2px black, 
+                    2px 2px 4px black, 
+                    3px 3px 8px black;
+            }
         </style>
     </head>
     <body>
-        Hello, Sandi!
+        Hello, <span>Sandi</span>!
     </body>
     </html>
     '''
