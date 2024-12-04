@@ -32,10 +32,10 @@ def hello_world():
             }
             img {
                 border-radius: 100%;
-                width: 250px;
-                height: 250px;
-                margin-top: 40px;
-                box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
+                width: 350px;
+                height: 350px;
+                margin-top: 60px;
+                box-shadow: 0px 16px 32px rgba(0, 0, 0, 0.5);
             }
         </style>
     </head>
