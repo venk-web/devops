@@ -31,7 +31,7 @@ def hello_world():
         </style>
     </head>
     <body>
-        Hello, <span>Virajaa</span>!
+        Na life kadu, <span>Mana life</span>!
     </body>
     </html>
     '''
