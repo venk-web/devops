@@ -40,7 +40,7 @@ def hello_world():
         </style>
     </head>
     <body>
-        <div>Na life kadu, <span>Mana life</span>!</div>
+        <div>Cheppanu, <span>Brother</span>!</div>
         <img src="/static/your_image.jpg" alt="Your Picture">
     </body>
     </html>
