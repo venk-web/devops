@@ -31,11 +31,11 @@ def hello_world():
                     3px 3px 8px black;
             }
             img {
-                border-radius: 50%;
-                width: 150px;
-                height: 150px;
-                margin-top: 20px;
-                box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.5);
+                border-radius: 100%;
+                width: 250px;
+                height: 250px;
+                margin-top: 40px;
+                box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.5);
             }
         </style>
     </head>
