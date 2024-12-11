@@ -1,0 +1,80 @@
+AWS: Redhat-9
+----------------------------------------------------
+JAVA, GIT, MAVEN, JENKINS, DOCKER, Containerd
+----------------------------------------------------
+sudo yum update -y
+sudo yum install curl --allowerasing
+sudo yum install wget -y
+
+Install java:
+sudo dnf update -y
+sudo dnf search openjdk
+sudo dnf install -y java-17-openjdk
+java -version
+
+Install python:
+python3 --version	(already installed)
+python3.9 --version
+curl -O https://bootstrap.pypa.io/get-pip.py
+python3.9 get-pip.py
+pip3.9 --version
+rm get-pip.py
+
+
+Install Git:
+sudo yum install git -y
+git version
+
+Install maven:
+sudo yum install maven -y
+mvn -version
+
+Install jenkins:
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+sudo yum install jenkins -y
+
+sudo systemctl start jenkins
+sudo systemctl enable jenkins
+
+Launch jenkins using public url (Ex: http://3.107.84.117:8080/)
+
+Install docker:
+sudo dnf install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum repolist
+sudo dnf install -y docker-ce docker-ce-cli containerd.io
+sudo systemctl start docker
+sudo systemctl status docker
+sudo systemctl enable docker
+docker --version
+
+Install "docker" plugin in jenkins console:
+manage jenkins > plugins > docker
+
+Add Jenkins User to Docker Group:
+$ groups jenkins	(command to check if the Jenkins user is in the docker group)
+jenkins : jenkins
+
+$ sudo usermod -aG docker jenkins	(to add the Jenkins user to the group)
+$ sudo systemctl restart jenkins	
+
+$ groups jenkins
+jenkins : jenkins docker
+
+
+Install Containerd:
+sudo dnf install -y yum-utils device-mapper-persistent-data lvm2
+sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+sudo yum-config-manager --disable docker-ce
+sudo yum-config-manager --enable docker-ce-stable
+sudo dnf install -y containerd.io
+containerd --version
+sudo mkdir -p /etc/containerd
+sudo containerd config default | sudo tee /etc/containerd/config.toml > /dev/null
+cat /etc/containerd/config.toml | grep -i SystemdCgroup
+sudo vi /etc/containerd/config.toml		=  (set SystemdCgroup = true)
+sudo systemctl restart containerd
+sudo systemctl enable containerd
+sudo systemctl status containerd
+========================================================================
