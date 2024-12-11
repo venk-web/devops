@@ -1,0 +1,86 @@
+- name: Installing Java, Git, Maven, docker, containerd, Jenkins using ANSIBLE
+  hosts: 172.31.13.248
+  become: True
+  tasks:
+    - name: 1. Update yum and dnf
+      shell: |
+        yum update -y
+        dnf update -y
+
+    - name: Install required packages for Docker
+      yum:
+        name:
+          - yum-utils
+          - device-mapper-persistent-data
+          - lvm2
+        state: present
+        update_cache: yes
+
+    - name: Add Jenkins repository
+      get_url:
+        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
+        dest: /etc/yum.repos.d/jenkins.repo
+        mode: '0644'
+
+    - name: Import Jenkins GPG key
+      rpm_key:
+        state: present
+        key: https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+    - name: Add Docker repository
+      command: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+      args:
+        creates: /etc/yum.repos.d/docker-ce.repo
+
+    - name: Install jenkins,docker,others
+      yum:
+        name:
+          - wget
+          - curl
+          - conntrack-tools
+          - ipvsadm
+          - ipset
+          - jq
+          - iptables
+          - jenkins
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - java-17-openjdk
+          - git
+          - maven
+        state: present
+        update_cache: yes
+
+    - name: Create containerd configuration directory
+      file:
+        path: /etc/containerd
+        state: directory
+        mode: '0755'
+
+    - name: Generate default containerd configuration
+      command: containerd config default
+      register: containerd_config_output
+
+    - name: Write containerd configuration to file
+      copy:
+        content: "{{ containerd_config_output.stdout }}"
+        dest: /etc/containerd/config.toml
+
+    - name: Update SystemdCgroup to true
+      replace:
+        path: /etc/containerd/config.toml
+        regexp: '^(\s*SystemdCgroup\s*=\s*)false'
+        replace: '\1true'
+
+    - name: Add Jenkins user to Docker group
+      command: usermod -aG docker jenkins
+
+    - name: Start and enable Docker and Jenkins services
+      systemd:
+        name: "{{ item }}"
+        state: started
+        enabled: yes
+      loop:
+        - docker
+        - jenkins
