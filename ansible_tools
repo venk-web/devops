@@ -1,6 +1,6 @@
 # PLEASE DON'T MODIFY THIS
 ---
-- name: Installing Java, Git, Maven, docker, containerd, Jenkins using ANSIBLE
+- name: Install OpenJDK 17, Git, and Maven
   hosts: 172.31.13.248
   become: True
   tasks:
@@ -18,11 +18,17 @@
         state: present
         update_cache: yes
 
-    - name: Add Jenkins repository
+    - name: Download required files (python, jenkins)
       get_url:
-        url: https://pkg.jenkins.io/redhat-stable/jenkins.repo
-        dest: /etc/yum.repos.d/jenkins.repo
-        mode: '0644'
+        url: "{{ item.url }}"
+        dest: "{{ item.dest }}"
+        mode: "{{ item.mode }}"
+      with_items:
+        - { url: "https://bootstrap.pypa.io/get-pip.py", dest: "/tmp/get-pip.py", mode: "0755" }
+        - { url: "https://pkg.jenkins.io/redhat-stable/jenkins.repo", dest: "/etc/yum.repos.d/jenkins.repo", mode: "0644" }
+
+    - name: Run get-pip.py with Python 3.9
+      command: python3.9 /tmp/get-pip.py
 
     - name: Import Jenkins GPG key
       rpm_key:
