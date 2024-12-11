@@ -1,1 +1,173 @@
+AWS: Redhat-9 : K8S INSTALL
+--------------------------------------------
+sudo swapoff -a
+sudo sed -i '/swap/d' /etc/fstab
 
+sudo setenforce 0
+sudo sed -i 's/^SELINUX=enforcing$/SELINUX=permissive/' /etc/selinux/config
+
+sudo dnf update -y
+
+sudo modprobe br_netfilter
+echo "1" | sudo tee /proc/sys/net/bridge/bridge-nf-call-iptables
+echo "1" | sudo tee /proc/sys/net/ipv4/ip_forward
+
+sudo dnf install -y conntrack-tools ipvsadm ipset jq iptables
+
+# This overwrites any existing configuration in /etc/yum.repos.d/kubernetes.repo
+cat <<EOF | sudo tee /etc/yum.repos.d/kubernetes.repo
+[kubernetes]
+name=Kubernetes
+baseurl=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/
+enabled=1
+gpgcheck=1
+gpgkey=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/repodata/repomd.xml.key
+exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
+EOF
+
+sudo yum install -y kubelet kubeadm kubectl --disableexcludes=kubernetes
+
+sudo systemctl enable kubelet
+sudo systemctl start kubelet	- will not work here, will work after kubeadm init or later
+
+kubeadm version
+kubectl version --client
+kubelet --version
+
+sudo kubeadm init --pod-network-cidr=192.168.0.0/16  // to set vm as master node
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+export KUBECONFIG=/etc/kubernetes/admin.conf	(might be not required)
+
+kubectl get nodes
+systemctl status kubelet
+
+kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+kubectl get nodes
+
+sudo systemctl restart kubelet
+sudo systemctl status kubelet
+
+kubectl get nodes
+kubectl get pods -A
+kubectl run mypod --image=nginx
+kubectl get pods
+kubectl describe pod mypod
+kubectl get nodes
+kubectl taint nodes ip-172-31-19-126.ec2.internal node-role.kubernetes.io/control-plane-
+kubectl get pods
+kubectl get nodes
+
+--------------------------------------------------------------------------
+
+AWS: Redhat-9 :  jenkins - kubernetes integration:
+
+Install "kubernetes" plugin:
+Manage jenkins > Plugins 
+Restart jenkins if required
+
+Integrating jenkins with kubernetes: (pics in gchat my space)
+kubectl create serviceaccount jenkins -n default
+kubectl create clusterrolebinding jenkins-binding --clusterrole=cluster-admin --serviceaccount=default:jenkins
+kubectl create token jenkins -n default
+
+sudo cp ~/.kube/config /var/lib/jenkins/.kube/config
+sudo chown jenkins:jenkins /var/lib/jenkins/.kube/config
+
+Manage jenkins > clouds (System configuration) > New cloud > Give Any name, type=kubernetes > create
+Kubernetes URL = https://172.31.3.66:6443
+give namespace
+Add the token generated above to Jenkins as a credential:
+Go to Manage Jenkins > Manage Credentials > Add Credentials.
+Select Secret text, paste the token, and save it.
+jenkins URL = jenkins console url
+Save
+
+----------------------------------------------------------------------------
+Worker node addition:
+
+1. Installed java, docker, containerd, kubernetes (kubeadm, kubelet, kubectl)
+2. Execute join command
+Ex: kubeadm join 172.31.15.74:6443 --token ocjwud.nwjcvnhej86xrhq3 --discovery-token-ca-cert-hash sha256:99a54ca28e7319626918fe4300d6a47ae4298522169a3bc2b19a22b6ad8bd49f
+3. Restart kubelet in master and worker
+
+Note: 1. Don't execute steps from "kubeadm init" as init will be used to setup a master node.
+2. kubeadm token create --print-join-command = Generate worker-node join command. (Do in master)
+
+=============================================================================
+To trigger a Jenkins build automatically when changes are made in a GitHub repository:
+
+Go to your repo > Settings > webhooks > Add webhook > 
+Payload URL = <Jenkins_URL>/github-webhook/
+Ex: http://44.222.223.201:8080/github-webhook/
+Content type = application/json
+Which events would you like to trigger this webhook? = Everything
+Add webhook
+
+Make sure this pluings are installed in jenkins:
+Git Plugin
+GitHub Plugin
+GitHub Integration Plugin
+
+In jenkins > go to your job 
+-> Enable GitHub Project:
+Under General, check GitHub Project and provide the repository URL.
+
+-> Build Triggers:
+Under Build Triggers, check GitHub hook trigger for GITScm polling.
+=================================================================================
+Run jenkins jobs using Jenkinsfile:
+
+In pipeline > select "Pipeline script from SCM"
+SCM = Git
+Repository URL = https://github.com/venk-web/devops
+Credentials = Add > kind (username with password) > Scope (global) > Give git Username, password
+Branch specifier = */main
+Script path = Jenkinsfile
+Save
+
+================================================================================
+
+1. Add or Update a Label to Define the Role
+kubectl label node <node-name> kubernetes.io/role=myworker
+
+kubectl get nodes
+The ROLES column should now show "myworker".
+
+2. Optional: Remove an Existing Label
+If there is an incorrect or undesired label, remove it before assigning a new one:
+
+kubectl label node <node-name> kubernetes.io/role-
+The - at the end removes the label.
+
+3. Using Custom Roles
+If you want to assign a custom role (e.g., storage, database), use a custom label instead of kubernetes.io/role:
+
+kubectl label node <node-name> node-role.kubernetes.io/storage=
+This will label the node with the custom role storage.
+
+=============================================================================
+
+Extra steps:
+1. journalctl -u kubelet -n 100 --no-pager
+
+2. sudo mkdir -p /etc/docker
+cat <<EOF | sudo tee /etc/docker/daemon.json
+{
+  "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m"
+  },
+  "storage-driver": "overlay2"
+}
+EOF
+
+3. Kubernetes URL: Use the API Server URL of your Kubernetes cluster (e.g., 
+https://<master-ip>:6443).
+
+kubectl cluster-info
