@@ -1,0 +1,80 @@
+---
+- name: Setup Kubernetes Cluster
+  hosts: all
+  become: yes
+  tasks:
+    - name: Disable swap
+      command: swapoff -a
+
+    - name: Remove swap entry from /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: '^.*swap.*$'
+        state: absent
+
+    - name: Set SELinux to permissive mode
+      command: setenforce 0
+
+    - name: Update SELinux config
+      lineinfile:
+        path: /etc/selinux/config
+        regexp: '^SELINUX=enforcing'
+        line: SELINUX=permissive
+
+    - name: Load br_netfilter module
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    - name: Enable bridge-nf-call-iptables
+      shell: echo "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.conf && sysctl -p
+
+    - name: Enable IPv4 forwarding
+      shell: echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.conf && sysctl -p
+
+    - name: Add Kubernetes repository
+      copy:
+        dest: /etc/yum.repos.d/kubernetes.repo
+        content: |
+          [kubernetes]
+          name=Kubernetes
+          baseurl=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://pkgs.k8s.io/core:/stable:/v1.30/rpm/repodata/repomd.xml.key
+          exclude=kubelet kubeadm kubectl cri-tools kubernetes-cni
+
+    - name: Install Kubernetes packages
+      yum:
+        name:
+          - kubelet
+          - kubeadm
+          - kubectl
+        state: present
+        disable_excludes: kubernetes
+
+    - name: Enable kubelet service
+      systemd:
+        name: kubelet
+        enabled: yes
+
+    - name: Reset Kubernetes cluster (if already initialized)
+      command: kubeadm reset -f
+      ignore_errors: yes
+
+    - name: Initialize Kubernetes cluster
+      command: kubeadm init --pod-network-cidr=192.168.0.0/16
+
+    - name: Configure kubectl for the user
+      shell: |
+        mkdir -p $HOME/.kube
+        cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+        chown $(id -u):$(id -g) $HOME/.kube/config
+
+    - name: Deploy Calico networking
+      command: kubectl apply -f https://docs.projectcalico.org/manifests/calico.yaml
+
+    - name: Restart kubelet service
+      systemd:
+        name: kubelet
+        state: restarted
