@@ -75,6 +75,7 @@ kubectl create serviceaccount jenkins -n default
 kubectl create clusterrolebinding jenkins-binding --clusterrole=cluster-admin --serviceaccount=default:jenkins
 kubectl create token jenkins -n default
 
+sudo mkdir /var/lib/jenkins/.kube
 sudo cp ~/.kube/config /var/lib/jenkins/.kube/config
 sudo chown jenkins:jenkins /var/lib/jenkins/.kube/config
 
