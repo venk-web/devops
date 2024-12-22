@@ -1,5 +1,5 @@
 #THIS IS HAVING ISSUES Need to modify (Issue at 72 & 73 lines)
-#Need to execute 72 and 73 with sudo permissions after the runbook completed. Do "kubectl get nodes" (should ready)
+#Manually execute 72 and 73 with sudo permissions after the runbook completed. Do "kubectl get nodes" (should ready)
 ---
 - name: Setup Kubernetes Cluster
   hosts: all
