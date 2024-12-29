@@ -1,5 +1,6 @@
 1. Create a terraform project (ex: devops) folder.
 2. In it, create a file (ex: provider.tf) and write the below code in it.
+
 provider "aws" {
   region = "us-east-1"
 }
