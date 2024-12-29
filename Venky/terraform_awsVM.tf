@@ -1,4 +1,4 @@
-#Successful code for AWS VM creation:
+#Successful code for AWS EC2 VM / VPC / Subnet / S3 bucket integartion / Security group / AWS Internet gateway / Routing table / subnet association:
 
 #provider.tf
 provider "aws" {
