@@ -12,6 +12,17 @@ sudo dnf search openjdk
 sudo dnf install -y java-17-openjdk
 java -version
 
+Install Tomcat:
+cd /opt
+sudo wget https://dlcdn.apache.org/tomcat/tomcat-10/v10.1.34/bin/apache-tomcat-10.1.34.tar.gz
+sudo tar -xzvf apache-tomcat-10.1.34.tar.gz
+sudo mv apache-tomcat-10.1.34 tomcat10
+sudo rm -rf apache-tomcat-10.1.34.tar.gz
+sudo chown -R ec2-user:ec2-user /opt/tomcat10/
+cd tomcat10/bin/
+./startup.sh start
+ps -ef|grep tomcat
+
 Install python:
 python3 --version	(already installed)
 python3.9 --version
@@ -19,7 +30,6 @@ curl -O https://bootstrap.pypa.io/get-pip.py
 python3.9 get-pip.py
 pip3.9 --version
 rm get-pip.py
-
 
 Install Git:
 sudo yum install git -y
