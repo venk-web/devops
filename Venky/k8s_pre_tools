@@ -1,6 +1,6 @@
 AWS: Redhat-9
 ----------------------------------------------------
-JAVA, GIT, MAVEN, JENKINS, DOCKER, Containerd
+JAVA, TOMCAT, GIT, MAVEN, JENKINS, DOCKER, Containerd
 ----------------------------------------------------
 sudo yum update -y
 sudo yum install curl --allowerasing
