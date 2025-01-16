@@ -87,4 +87,34 @@ sudo vi /etc/containerd/config.toml		=  (set SystemdCgroup = true)
 sudo systemctl restart containerd
 sudo systemctl enable containerd
 sudo systemctl status containerd
+
+
+Install Nexus: (AWS VM - t3.medium for 2CPU, 4GB RAM)
+
+Install Nexus:
+Install java 17
+cd /opt/
+sudo wget https://download.sonatype.com/nexus/3/nexus-3.75.1-01-unix.tar.gz
+sudo tar -xzvf nexus-3.75.1-01-unix.tar.gz
+sudo rm -rf nexus-3.75.1-01-unix.tar.gz
+sudo chown -R ec2-user:ec2-user /opt/sonatype-work/ /opt/nexus-3.75.1-01/
+cd nexus-3.75.1-01/
+cd bin/
+sudo vi nexus.rc and add below line
+run_as_user="ec2-user"
+
+./nexus status
+./nexus start
+
+Access nexus at "http://<nexus-IP>:8081/"
+
+
+In jenkins, install "Nexus Artifact Uploader" plugin
 ========================================================================
+uninstall java 17:
+
+dnf list installed | grep java
+sudo dnf remove java-17-openjdk
+sudo dnf install java-11-openjdk
+sudo alternatives --config java
+java -version
