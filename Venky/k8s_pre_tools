@@ -22,6 +22,7 @@ sudo chown -R ec2-user:ec2-user /opt/tomcat10/
 cd tomcat10/bin/
 ./startup.sh start
 ps -ef|grep tomcat
+http://<your-ec2-public-ip>:8080   (make sure jenkins is also running with 8080 port, so changt it to 9090 in server.xml and restart tomcat)
 
 Install python:
 python3 --version	(already installed)
@@ -119,3 +120,4 @@ sudo dnf remove java-17-openjdk
 sudo dnf install java-11-openjdk
 sudo alternatives --config java
 java -version
+
