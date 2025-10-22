@@ -40,8 +40,8 @@ def hello_world():
         </style>
     </head>
     <body>
-        <div>My, <span>Family pic</span>....</div>
-        <img src="/static/your_image.jpg" alt="Your Picture">
+        <div>Hello, <span>Vignan</span>....</div>
+        <img src="/static/vignan.jpg" alt="Your Picture">
     </body>
     </html>
     '''
